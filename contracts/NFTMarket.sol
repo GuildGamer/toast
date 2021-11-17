@@ -1,6 +1,8 @@
 //SPDX-Lincense-identifier: MIT
 pragma solidity ^0.8.4;
 
+//PVR
+
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -30,6 +32,7 @@ contract NFTMarket is ReentrancyGuard{
 
     mapping(uint256 => MarketItem) private idToMarketItem;
 
+    // LEARN: events solidity
     event MarketItemCreated(
         uint indexed itemId,
         address indexed nftContract,
@@ -39,10 +42,11 @@ contract NFTMarket is ReentrancyGuard{
         uint256 price,
         bool sold
     );
-
+                                            // uint256 is the return type not parameter
     function getListingPrice() public view returns(uint256){
         return listingPrice;
     }
+    
     // Here nonReentrant is a modifier as well
     function createMarketItem(
         address nftContract,
@@ -115,7 +119,7 @@ contract NFTMarket is ReentrancyGuard{
     }
 
     // Function to fetch your own market items(NFTs)
-    function FetchMyNFTs() public view returns(MarketItem[] memory){
+    function fetchMyNFTs() public view returns(MarketItem[] memory){
         uint totalItemCount = _itemIds.current();
         uint itemCount = 0;
         uint currentIndex = 0; 
@@ -127,7 +131,7 @@ contract NFTMarket is ReentrancyGuard{
         }
 
         MarketItem[] memory myNFTs = new MarketItem[](itemCount);
-        for(uint i = 0; i<=totalItemCount; i++){
+        for(uint i = 0; i < totalItemCount; i++){
             if (idToMarketItem[currentIndex].owner == msg.sender ) {
                 uint currentId = idToMarketItem[i+1].itemId;
                 MarketItem storage currentItem = idToMarketItem[currentId];
@@ -137,6 +141,31 @@ contract NFTMarket is ReentrancyGuard{
         }
 
         return myNFTs;
+
+    }
+        // Function to fetch Items created by you
+    function fetchItemCreated() public view returns(MarketItem[] memory){
+        uint totalItemCount = _itemIds.current();
+        uint itemCount = 0;
+        uint currentIndex = 0; 
+        // msg.sender is just like request.user
+        for(uint i = 0; i < totalItemCount; i++){
+            if (idToMarketItem[i + 1].seller == msg.sender ) {
+                itemCount += 1;
+            }
+        }
+
+        MarketItem[] memory items = new MarketItem[](itemCount);
+        for(uint i = 0; i < totalItemCount; i++){
+            if (idToMarketItem[i + 1].seller == msg.sender ) {
+                uint currentId = idToMarketItem[i+1].itemId;
+                MarketItem storage currentItem = idToMarketItem[currentId];
+                items[currentIndex] = currentItem;
+                currentIndex += 1;
+            }
+        }
+
+        return items;
 
     }
 
